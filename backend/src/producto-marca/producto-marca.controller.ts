@@ -11,7 +11,7 @@ import { ProductoMarcaService } from './producto-marca.service';
 import { CreateProductoMarcaDto } from './dto/create-producto-marca.dto';
 import { UpdateProductoMarcaDto } from './dto/update-producto-marca.dto';
 
-@Controller('producto-marca')
+@Controller('/productomarca')
 export class ProductoMarcaController {
   constructor(private readonly productoMarcaService: ProductoMarcaService) {}
 

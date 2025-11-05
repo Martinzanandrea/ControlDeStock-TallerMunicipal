@@ -13,7 +13,7 @@ import { DepositoService } from './deposito.service';
 import { CreateDepositoDto } from './dto/create-deposito.dto';
 import { UpdateDepositoDto } from './dto/update-deposito.dto';
 
-@Controller('depositos')
+@Controller('/depositos')
 export class DepositoController {
   constructor(private readonly depositoService: DepositoService) {}
 

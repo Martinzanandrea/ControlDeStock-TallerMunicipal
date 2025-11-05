@@ -11,7 +11,7 @@ import { ProductoTipoService } from './producto-tipo.service';
 import { CrearProductoTipoDto } from './dto/create-producto-tipo.dto';
 import { ActualizarProductoTipoDto } from './dto/update-producto-tipo.dto';
 
-@Controller('productos-tipos')
+@Controller('/productostipos')
 export class ProductoTipoController {
   constructor(private readonly tipoService: ProductoTipoService) {}
 

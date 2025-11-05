@@ -12,7 +12,7 @@ import { StockIngresadoService } from './stock-ingresado.service';
 import { CreateStockIngresadoDto } from './dto/create-stock-ingresado.dto';
 import { UpdateStockIngresadoDto } from './dto/update-stock-ingresado.dto';
 
-@Controller('stock-ingresado')
+@Controller('/stockingresado')
 export class StockIngresadoController {
   constructor(private readonly stockService: StockIngresadoService) {}
 

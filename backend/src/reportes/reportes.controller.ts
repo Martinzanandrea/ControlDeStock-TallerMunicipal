@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Query, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  Res,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { ReportesService } from './reportes.service';
 import type { Response } from 'express';
 
@@ -92,20 +99,59 @@ export class ReportesController {
   }
 
   /**
+   * Devuelve el stock disponible por producto y depósito (JSON).
+   */
+  @Get('stock/producto-deposito')
+  stockPorProductoYDeposito() {
+    return this.reportesService.stockPorProductoYDeposito();
+  }
+
+  /**
+   * Descarga el reporte de stock por producto y depósito en Excel.
+   */
+  @Get('stock/producto-deposito/excel')
+  async stockPorProductoYDepositoExcel(@Res() res: Response) {
+    const buf = await this.reportesService.stockPorProductoYDepositoExcel();
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="stock_por_producto_y_deposito.xlsx"',
+    );
+    res.send(buf);
+  }
+
+  /**
+   * Descarga el reporte de stock por producto y depósito en PDF.
+   */
+  @Get('stock/producto-deposito/pdf')
+  async stockPorProductoYDepositoPdf(@Res() res: Response) {
+    const buf = await this.reportesService.stockPorProductoYDepositoPdf();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="stock_por_producto_y_deposito.pdf"',
+    );
+    res.send(buf);
+  }
+
+  /**
    * Devuelve el historial de movimientos (ingresos/egresos)
    * para un producto específico (JSON).
    */
   @Get('historial/producto/:idProducto')
-  historialProducto(@Param('idProducto') idProducto: number) {
+  historialProducto(@Param('idProducto', ParseIntPipe) idProducto: number) {
     return this.reportesService.historialProducto(idProducto);
   }
 
   /**
    * Descarga el historial de un producto en Excel.
    */
-  @Get('historial/producto/:idProducto.xlsx')
+  @Get('historial/producto/:idProducto/excel')
   async historialProductoExcel(
-    @Param('idProducto') idProducto: number,
+    @Param('idProducto', ParseIntPipe) idProducto: number,
     @Res() res: Response,
   ) {
     const buf = await this.reportesService.historialProductoExcel(idProducto);
@@ -117,15 +163,15 @@ export class ReportesController {
       'Content-Disposition',
       `attachment; filename="historial_producto_${idProducto}.xlsx"`,
     );
-    res.end(buf);
+    res.send(buf);
   }
 
   /**
    * Descarga el historial de un producto en PDF.
    */
-  @Get('historial/producto/:idProducto.pdf')
+  @Get('historial/producto/:idProducto/pdf')
   async historialProductoPdf(
-    @Param('idProducto') idProducto: number,
+    @Param('idProducto', ParseIntPipe) idProducto: number,
     @Res() res: Response,
   ) {
     const buf = await this.reportesService.historialProductoPdf(idProducto);
@@ -134,7 +180,7 @@ export class ReportesController {
       'Content-Disposition',
       `attachment; filename="historial_producto_${idProducto}.pdf"`,
     );
-    res.end(buf);
+    res.send(buf);
   }
 
   /**

@@ -11,7 +11,39 @@ type AuditDTO = {
   userId: number | null;
   method: string;
   action: 'READ' | 'CREATE' | 'UPDATE' | 'DELETE' | string;
+  resource: string | null;
 };
+
+// Traduce el nombre técnico del recurso a uno más amigable
+function getNombreRecurso(resource: string | null): string {
+  if (!resource) return 'registro';
+  const map: Record<string, string> = {
+    productos: 'producto',
+    productostipos: 'tipo de producto',
+    productomarca: 'marca',
+    depositos: 'depósito',
+    vehiculos: 'vehículo',
+    stockingresado: 'ingreso de stock',
+    stockegreso: 'egreso de stock',
+    auditoria: 'auditoría',
+  };
+  return map[resource.toLowerCase()] || resource;
+}
+
+// Genera una descripción legible de la acción
+function getDescripcionAccion(action: string, resource: string | null): string {
+  const nombre = getNombreRecurso(resource);
+  switch (action) {
+    case 'CREATE':
+      return `Creó un ${nombre}`;
+    case 'UPDATE':
+      return `Actualizó un ${nombre}`;
+    case 'DELETE':
+      return `Eliminó un ${nombre}`;
+    default:
+      return `${action} en ${nombre}`;
+  }
+}
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -33,14 +65,19 @@ const Auditoria: React.FC = () => {
       })
       .then((raw) => {
         const data = raw as AuditDTO[];
+        // Filtrar solo operaciones de escritura (CREATE, UPDATE, DELETE)
+        const escritura = data.filter((d) => 
+          ['CREATE', 'UPDATE', 'DELETE'].includes(d.action)
+        );
         setItems(
-          data.map((d) => ({
+          escritura.map((d) => ({
             id: d.id,
             createdAt: d.createdAt,
             username: d.username ?? null,
             userId: typeof d.userId === 'number' ? d.userId : null,
             method: d.method,
             action: d.action,
+            resource: d.resource ?? null,
           })),
         );
       })
@@ -61,7 +98,7 @@ const Auditoria: React.FC = () => {
               <TableRow>
                 <TableCell>Hora</TableCell>
                 <TableCell>Usuario</TableCell>
-                <TableCell>Acción</TableCell>
+                <TableCell>Descripción</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -76,6 +113,7 @@ const Auditoria: React.FC = () => {
                 const fecha = new Date(it.createdAt);
                 const hora = fecha.toLocaleString();
                 const usuario = it.username || (it.userId ? `Usuario #${it.userId}` : 'Anónimo');
+                const descripcion = getDescripcionAccion(it.action, it.resource);
                 let color: ChipProps['color'] = 'default';
                 if (it.action === 'CREATE') color = 'success';
                 else if (it.action === 'UPDATE') color = 'warning';
@@ -86,8 +124,8 @@ const Auditoria: React.FC = () => {
                     <TableCell>{usuario}</TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <Chip size="small" label={it.action} color={color} variant={color === 'default' ? 'outlined' : 'filled'} />
-                        <Typography variant="body2" color="text.secondary">{it.method}</Typography>
+                        <Chip size="small" label={it.action} color={color} variant="filled" />
+                        <Typography variant="body2">{descripcion}</Typography>
                       </Stack>
                     </TableCell>
                   </TableRow>

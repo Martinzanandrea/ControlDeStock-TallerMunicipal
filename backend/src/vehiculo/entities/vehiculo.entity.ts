@@ -1,23 +1,16 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
-import { ProductoMarca } from '../../producto-marca/entities/producto-marca.entity';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
+/**
+ * Entidad Vehículo.
+ * Representa un vehículo destino de egresos (sin relación con marcas de productos).
+ */
 @Entity('vehiculo')
 export class Vehiculo {
   @PrimaryGeneratedColumn()
   idVehiculo: number;
 
-  @Column({ length: 10 })
+  @Column({ length: 10, unique: true })
   dominio: string;
-
-  @ManyToOne(() => ProductoMarca, (marca) => marca.vehiculos)
-  @JoinColumn({ name: 'idProductoMarca' })
-  marca: ProductoMarca;
 
   @Column({ length: 100 })
   modelo: string;

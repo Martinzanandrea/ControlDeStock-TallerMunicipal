@@ -73,7 +73,7 @@ const Stock: React.FC = () => {
   return (
     <>
       <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>Agregar Stock</Typography>
+        <Typography variant="h6" gutterBottom>Registrar Ingreso de Stock</Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%', md: '30%' } }}>
             <FormControl fullWidth>
@@ -103,7 +103,7 @@ const Stock: React.FC = () => {
         </Box>
       </Paper>
       <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 } }}>
-        <Typography variant="h6" gutterBottom>Stock Actual</Typography>
+        <Typography variant="h6" gutterBottom>Historial de Ingresos</Typography>
         <Box sx={{ overflowX: 'auto' }}>
           <TableContainer>
             <Table sx={{ minWidth: { xs: 300, sm: 650 } }}>

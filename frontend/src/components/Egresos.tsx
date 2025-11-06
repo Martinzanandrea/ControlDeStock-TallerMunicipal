@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Paper, Box, Typography, FormControl, InputLabel, Select, MenuItem, TextField, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Snackbar, Alert, TableSortLabel } from '@mui/material';
-import { getProductos, getDepositos, getVehiculos, getStockEgresos, createStockEgreso, deleteStockEgreso, getStockIngresado, createVehiculo, getProductoMarcas } from '../api';
-import type { Producto, Deposito, Vehiculo, StockEgreso, StockIngresado, ProductoMarca } from '../interface';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+import { getProductos, getDepositos, getVehiculos, getStockEgresos, createStockEgreso, deleteStockEgreso, getStockIngresado, createVehiculo } from '../api';
+import type { Producto, Deposito, Vehiculo, StockEgreso, StockIngresado } from '../interface';
+
+dayjs.locale('es');
 
 // Formulario de egresos con validaciones básicas, selector de destino
 // (oficina/vehículo), alta rápida de vehículo y tabla con ordenamiento.
@@ -10,11 +17,10 @@ const Egresos: React.FC = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [depositos, setDepositos] = useState<Deposito[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
-  const [marcas, setMarcas] = useState<ProductoMarca[]>([]);
   const [egresos, setEgresos] = useState<StockEgreso[]>([]);
   const [stockList, setStockList] = useState<StockIngresado[]>([]);
-  const [nuevoEgreso, setNuevoEgreso] = useState({ productoId: 0, depositoId: 0, cantidad: 0, fechaEgreso: new Date().toISOString().slice(0,10), destinoTipo: 'OFICINA' as 'OFICINA'|'VEHICULO', idVehiculo: 0 });
-  const [nuevoVehiculo, setNuevoVehiculo] = useState({ dominio: '', marcaId: 0, modelo: '', anio: new Date().getFullYear() });
+  const [nuevoEgreso, setNuevoEgreso] = useState({ productoId: 0, depositoId: 0, cantidad: 0, fechaEgreso: dayjs(), destinoTipo: 'OFICINA' as 'OFICINA'|'VEHICULO', idVehiculo: 0 });
+  const [nuevoVehiculo, setNuevoVehiculo] = useState({ dominio: '', modelo: '', anio: new Date().getFullYear() });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' | 'info' });
   const [orderBy, setOrderBy] = useState<'id'|'producto'|'deposito'|'cantidad'|'fecha'|'destino'>('id');
   const [order, setOrder] = useState<'asc'|'desc'>('asc');
@@ -26,20 +32,18 @@ const Egresos: React.FC = () => {
 
   // Carga inicial de catálogos y egresos en paralelo
   async function cargarDatos() {
-    const [prod, deps, vehs, eg, stock, mcs] = await Promise.all([
+    const [prod, deps, vehs, eg, stock] = await Promise.all([
       getProductos(),
       getDepositos(),
       getVehiculos(),
       getStockEgresos(),
       getStockIngresado(),
-      getProductoMarcas(),
     ]);
     setProductos(prod);
     setDepositos(deps);
     setVehiculos(vehs);
     setEgresos(eg);
     setStockList(stock);
-    setMarcas(mcs);
   }
 
   // Valida campos, verifica stock disponible y crea el egreso
@@ -66,11 +70,11 @@ const Egresos: React.FC = () => {
         idProducto: nuevoEgreso.productoId,
         idDeposito: nuevoEgreso.depositoId,
         cantidad: nuevoEgreso.cantidad,
-        fechaEgreso: nuevoEgreso.fechaEgreso,
+        fechaEgreso: nuevoEgreso.fechaEgreso.format('YYYY-MM-DD'),
         destinoTipo: nuevoEgreso.destinoTipo,
         idVehiculo: nuevoEgreso.destinoTipo === 'VEHICULO' ? nuevoEgreso.idVehiculo : undefined,
       });
-      setNuevoEgreso({ productoId: 0, depositoId: 0, cantidad: 0, fechaEgreso: new Date().toISOString().slice(0,10), destinoTipo: 'OFICINA', idVehiculo: 0 });
+      setNuevoEgreso({ productoId: 0, depositoId: 0, cantidad: 0, fechaEgreso: dayjs(), destinoTipo: 'OFICINA', idVehiculo: 0 });
       await cargarDatos();
       setSnackbar({ open: true, message: 'Egreso registrado exitosamente', severity: 'success' });
     } catch (err: unknown) {
@@ -81,8 +85,8 @@ const Egresos: React.FC = () => {
 
   // Restablece los campos del formulario y notifica cancelación
   function handleCancelarEgreso(){
-    setNuevoEgreso({ productoId: 0, depositoId: 0, cantidad: 0, fechaEgreso: new Date().toISOString().slice(0,10), destinoTipo: 'OFICINA', idVehiculo: 0 });
-    setNuevoVehiculo({ dominio: '', marcaId: 0, modelo: '', anio: new Date().getFullYear() });
+    setNuevoEgreso({ productoId: 0, depositoId: 0, cantidad: 0, fechaEgreso: dayjs(), destinoTipo: 'OFICINA', idVehiculo: 0 });
+    setNuevoVehiculo({ dominio: '', modelo: '', anio: new Date().getFullYear() });
     setSnackbar({ open:true, message:'Operación cancelada', severity:'info' });
   }
 
@@ -101,14 +105,14 @@ const Egresos: React.FC = () => {
 
   // Alta rápida de vehículo cuando el destino es VEHICULO
   async function handleRegistrarVehiculo(data: typeof nuevoVehiculo) {
-    if (!data.dominio || !data.modelo || !data.anio || !data.marcaId) {
+    if (!data.dominio || !data.modelo || !data.anio) {
       setSnackbar({ open: true, message: 'Completar todos los campos', severity: 'error' });
       return;
     }
     try {
       const veh = await createVehiculo(data);
       setVehiculos(prev => [...prev, veh]);
-      setNuevoVehiculo({ dominio: '', modelo: '', anio: new Date().getFullYear(), marcaId: 0 });
+      setNuevoVehiculo({ dominio: '', modelo: '', anio: new Date().getFullYear() });
       setNuevoEgreso(prev => ({ ...prev, idVehiculo: veh.idVehiculo }));
       setSnackbar({ open: true, message: 'Vehículo registrado', severity: 'success' });
     } catch (err: unknown) {
@@ -145,7 +149,14 @@ const Egresos: React.FC = () => {
           <TextField fullWidth type="number" label="Cantidad" value={nuevoEgreso.cantidad} onChange={e => setNuevoEgreso({ ...nuevoEgreso, cantidad: Number(e.target.value) })} />
         </Box>
         <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%', md: '15%' } }}>
-          <TextField fullWidth type="date" label="Fecha" value={nuevoEgreso.fechaEgreso} onChange={e => setNuevoEgreso({ ...nuevoEgreso, fechaEgreso: e.target.value })} InputLabelProps={{ shrink: true }} />
+          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+            <DatePicker
+              label="Fecha"
+              value={nuevoEgreso.fechaEgreso}
+              onChange={(newValue) => setNuevoEgreso({ ...nuevoEgreso, fechaEgreso: newValue || dayjs() })}
+              slotProps={{ textField: { fullWidth: true } }}
+            />
+          </LocalizationProvider>
         </Box>
         <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%', md: '15%' } }}>
           <FormControl fullWidth>
@@ -176,15 +187,6 @@ const Egresos: React.FC = () => {
                 </Box>
                 <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%' } }}>
                   <TextField label="Año" type="number" value={nuevoVehiculo.anio} onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, anio: Number(e.target.value) })} fullWidth />
-                </Box>
-                <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%' } }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Marca</InputLabel>
-                    <Select value={nuevoVehiculo.marcaId} onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, marcaId: Number(e.target.value) })} label="Marca">
-                      <MenuItem value={0}>Seleccionar</MenuItem>
-                      {marcas.map(m => <MenuItem key={m.idProductoMarca} value={m.idProductoMarca}>{m.nombre}</MenuItem>)}
-                    </Select>
-                  </FormControl>
                 </Box>
                 <Box sx={{ width: '100%' }}>
                   <Button variant="contained" color="primary" fullWidth sx={{ mt: 1 }} onClick={() => handleRegistrarVehiculo(nuevoVehiculo)}>Registrar Vehículo</Button>

@@ -134,5 +134,3 @@ npm run build   # build producción
 Uso interno municipal (adaptar según necesidad).
 
 ---
-
-Documento escrito en estilo simple para que cualquiera del equipo entienda rápido la estructura y cómo ejecutar el proyecto.

@@ -12,6 +12,8 @@ import Egresos from './components/Egresos';
 import Vehiculos from './components/Vehiculos';
 import Depositos from './components/Depositos';
 import Auditoria from './components/Auditoria.tsx';
+import HistorialProducto from './components/HistorialProducto';
+import StockProductoDeposito from './components/StockProductoDeposito';
 import Inicio from './components/Inicio';
 import { ColorModeContext, useColorMode } from './theme';
 
@@ -41,12 +43,16 @@ const App: React.FC = () => {
                 <Route path="vehiculos" element={<Vehiculos />} />
                 <Route path="depositos" element={<Depositos />} />
                 <Route path="auditoria" element={<Auditoria />} />
+                <Route path="historial" element={<HistorialProducto />} />
+                <Route path="stock-deposito" element={<StockProductoDeposito />} />
               </Route>
             ) : (
-              <Route path="/" element={<Inicio />} />
+              <>
+                <Route path="/" element={<Inicio />} />
+                {/* Si no autenticado y va a ruta protegida, redirige a login */}
+                <Route path="/*" element={<Navigate to="/login" replace />} />
+              </>
             )}
-            {/* Cualquier otra ruta pública no autenticada redirige a inicio */}
-            {!authed && <Route path="/*" element={<Navigate to="/inicio" replace />} />}
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

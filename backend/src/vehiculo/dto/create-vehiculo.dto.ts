@@ -1,12 +1,12 @@
 import { IsInt, IsString, Length, IsOptional } from 'class-validator';
 
+/**
+ * DTO para crear un nuevo vehículo.
+ */
 export class CreateVehiculoDto {
   @IsString()
   @Length(1, 10)
   dominio: string;
-
-  @IsInt()
-  idProductoMarca: number;
 
   @IsString()
   @Length(1, 100)

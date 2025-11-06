@@ -187,15 +187,16 @@ export async function getVehiculos(): Promise<Vehiculo[]> {
   return res.json();
 }
 
+/**
+ * Crea un nuevo vehículo (solo dominio, modelo y año).
+ */
 export async function createVehiculo(data: {
   dominio: string;
-  marcaId: number;
   modelo: string;
   anio: number;
 }): Promise<Vehiculo> {
   const payload = {
     dominio: data.dominio,
-    idProductoMarca: data.marcaId,
     modelo: data.modelo,
     anio: data.anio,
   };
@@ -288,4 +289,110 @@ export async function createStockEgreso(data: {
 export async function deleteStockEgreso(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/stockegreso/${id}`, { method: 'DELETE', headers: authHeaders() });
   if (!res.ok) throw new Error('Error al eliminar egreso');
+}
+
+// ---------- Reportes ----------
+/**
+ * Interfaz para movimientos del historial de un producto.
+ */
+export interface MovimientoProducto {
+  tipo: 'INGRESO' | 'EGRESO';
+  fecha: string;
+  cantidad: number;
+  deposito?: string;
+  destinoTipo?: string;
+  vehiculo?: string;
+}
+
+/**
+ * Interfaz para el stock por producto y depósito.
+ */
+export interface StockProductoDeposito {
+  producto: string;
+  deposito: string;
+  stock: number;
+}
+
+/**
+ * Descarga un archivo (Excel o PDF) con autenticación.
+ * Maneja el blob y crea un link temporal para la descarga.
+ */
+async function descargarArchivo(url: string, nombreArchivo: string): Promise<void> {
+  const response = await fetch(url, {
+    headers: authHeaders()
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Error al descargar el archivo');
+  }
+  
+  const blob = await response.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = nombreArchivo;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  
+  // Dar tiempo para que se inicie la descarga antes de limpiar
+  setTimeout(() => {
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  }, 100);
+}
+
+/**
+ * Obtiene el historial de movimientos (ingresos y egresos) de un producto.
+ */
+export async function getHistorialProducto(idProducto: number): Promise<MovimientoProducto[]> {
+  const res = await fetch(`${API_URL}/reportes/historial/producto/${idProducto}`, { 
+    headers: authHeaders() 
+  });
+  if (!res.ok) throw new Error('Error al obtener historial del producto');
+  return res.json();
+}
+
+/**
+ * Descarga el historial de producto en formato Excel.
+ */
+export async function descargarHistorialProductoExcel(idProducto: number): Promise<void> {
+  const url = `${API_URL}/reportes/historial/producto/${idProducto}/excel`;
+  await descargarArchivo(url, `historial_producto_${idProducto}.xlsx`);
+}
+
+/**
+ * Descarga el historial de producto en formato PDF.
+ */
+export async function descargarHistorialProductoPdf(idProducto: number): Promise<void> {
+  const url = `${API_URL}/reportes/historial/producto/${idProducto}/pdf`;
+  await descargarArchivo(url, `historial_producto_${idProducto}.pdf`);
+}
+
+/**
+ * Obtiene el stock por producto y depósito.
+ */
+export async function getStockPorProductoYDeposito(): Promise<StockProductoDeposito[]> {
+  const res = await fetch(`${API_URL}/reportes/stock/producto-deposito`, { 
+    headers: authHeaders() 
+  });
+  if (!res.ok) throw new Error('Error al obtener stock por producto y depósito');
+  return res.json();
+}
+
+/**
+ * Descarga el stock por producto y depósito en formato Excel.
+ */
+export async function descargarStockProductoDepositoExcel(): Promise<void> {
+  const url = `${API_URL}/reportes/stock/producto-deposito/excel`;
+  await descargarArchivo(url, `stock_producto_deposito.xlsx`);
+}
+
+/**
+ * Descarga el stock por producto y depósito en formato PDF.
+ */
+export async function descargarStockProductoDepositoPdf(): Promise<void> {
+  const url = `${API_URL}/reportes/stock/producto-deposito/pdf`;
+  await descargarArchivo(url, `stock_producto_deposito.pdf`);
 }

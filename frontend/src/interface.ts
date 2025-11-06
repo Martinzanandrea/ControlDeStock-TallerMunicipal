@@ -55,7 +55,6 @@ export interface StockIngresado {
 export interface Vehiculo {
   idVehiculo: number;
   dominio: string;
-  marca: ProductoMarca;      // referencia a Marca
   modelo: string;
   anio: number;
   estado: 'AC' | 'BA';

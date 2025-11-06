@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Paper, Box, Typography, TextField, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Snackbar, Alert, FormControl, InputLabel, Select, MenuItem, TableSortLabel } from '@mui/material';
-import { getVehiculos, createVehiculo, getProductoMarcas, deleteVehiculo } from '../api';
-import type { Vehiculo, ProductoMarca } from '../interface';
+import { Paper, Box, Typography, TextField, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Snackbar, Alert, TableSortLabel } from '@mui/material';
+import { getVehiculos, createVehiculo, deleteVehiculo } from '../api';
+import type { Vehiculo } from '../interface';
 
 const Vehiculos: React.FC = () => {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
-  const [marcas, setMarcas] = useState<ProductoMarca[]>([]);
-  const [nuevoVehiculo, setNuevoVehiculo] = useState({ dominio: '', marcaId: 0, modelo: '', anio: new Date().getFullYear() });
+  const [nuevoVehiculo, setNuevoVehiculo] = useState({ dominio: '', modelo: '', anio: new Date().getFullYear() });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' | 'info' | 'warning' });
-  const [orderBy, setOrderBy] = useState<'id'|'dominio'|'marca'|'modelo'|'anio'>('id');
+  const [orderBy, setOrderBy] = useState<'id'|'dominio'|'modelo'|'anio'>('id');
   const [order, setOrder] = useState<'asc'|'desc'>('asc');
   const handleRequestSort = (key: typeof orderBy) => {
     if(orderBy === key) setOrder(prev=> prev==='asc'?'desc':'asc'); else { setOrderBy(key); setOrder('asc'); }
@@ -17,23 +16,19 @@ const Vehiculos: React.FC = () => {
   useEffect(() => { cargarDatos(); }, []);
 
   async function cargarDatos() {
-    const [vehs, mcs] = await Promise.all([
-      getVehiculos(),
-      getProductoMarcas(),
-    ]);
+    const vehs = await getVehiculos();
     setVehiculos(vehs);
-    setMarcas(mcs);
   }
 
   async function handleRegistrarVehiculo() {
-    if (!nuevoVehiculo.dominio || !nuevoVehiculo.modelo || !nuevoVehiculo.anio || !nuevoVehiculo.marcaId) {
+    if (!nuevoVehiculo.dominio || !nuevoVehiculo.modelo || !nuevoVehiculo.anio) {
       setSnackbar({ open: true, message: 'Completar todos los campos', severity: 'error' });
       return;
     }
     try {
       const veh = await createVehiculo(nuevoVehiculo);
       setVehiculos(prev => [...prev, veh]);
-      setNuevoVehiculo({ dominio: '', modelo: '', anio: new Date().getFullYear(), marcaId: 0 });
+      setNuevoVehiculo({ dominio: '', modelo: '', anio: new Date().getFullYear() });
       setSnackbar({ open: true, message: 'Vehículo registrado', severity: 'success' });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -55,7 +50,7 @@ const Vehiculos: React.FC = () => {
 
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
   const handleCancelVehiculo = () => {
-    setNuevoVehiculo({ dominio: '', marcaId: 0, modelo: '', anio: new Date().getFullYear() });
+    setNuevoVehiculo({ dominio: '', modelo: '', anio: new Date().getFullYear() });
     setSnackbar({ open:true, message:'Operación cancelada', severity:'info' });
   };
 
@@ -63,23 +58,14 @@ const Vehiculos: React.FC = () => {
     <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
       <Typography variant="h6" gutterBottom>Registrar Vehículo</Typography>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%', md: '23%' } }}>
+        <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%', md: '30%' } }}>
           <TextField label="Dominio" value={nuevoVehiculo.dominio} onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, dominio: e.target.value })} fullWidth />
         </Box>
-        <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%', md: '23%' } }}>
+        <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%', md: '30%' } }}>
           <TextField label="Modelo" value={nuevoVehiculo.modelo} onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, modelo: e.target.value })} fullWidth />
         </Box>
-        <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%', md: '23%' } }}>
+        <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%', md: '30%' } }}>
           <TextField label="Año" type="number" value={nuevoVehiculo.anio} onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, anio: Number(e.target.value) })} fullWidth />
-        </Box>
-        <Box sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: '45%', md: '23%' } }}>
-          <FormControl fullWidth>
-            <InputLabel>Marca</InputLabel>
-            <Select value={nuevoVehiculo.marcaId} onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, marcaId: Number(e.target.value) })} label="Marca">
-              <MenuItem value={0}>Seleccionar</MenuItem>
-              {marcas.map(m => <MenuItem key={m.idProductoMarca} value={m.idProductoMarca}>{m.nombre}</MenuItem>)}
-            </Select>
-          </FormControl>
         </Box>
         <Box sx={{ width: '100%', display:'flex', flexDirection:{ xs:'column', sm:'row' }, gap:1 }}>
           <Button variant="contained" color="primary" sx={{ flex:1, minHeight:'46px' }} onClick={handleRegistrarVehiculo}>Registrar Vehículo</Button>
@@ -98,9 +84,6 @@ const Vehiculos: React.FC = () => {
                 <TableCell sortDirection={orderBy==='dominio'?order:undefined}>
                   <TableSortLabel active={orderBy==='dominio'} direction={orderBy==='dominio'?order:'asc'} onClick={()=>handleRequestSort('dominio')}>Dominio</TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }} sortDirection={orderBy==='marca'?order:undefined}>
-                  <TableSortLabel active={orderBy==='marca'} direction={orderBy==='marca'?order:'asc'} onClick={()=>handleRequestSort('marca')}>Marca</TableSortLabel>
-                </TableCell>
                 <TableCell sortDirection={orderBy==='modelo'?order:undefined}>
                   <TableSortLabel active={orderBy==='modelo'} direction={orderBy==='modelo'?order:'asc'} onClick={()=>handleRequestSort('modelo')}>Modelo</TableSortLabel>
                 </TableCell>
@@ -113,7 +96,7 @@ const Vehiculos: React.FC = () => {
             <TableBody>
               {vehiculos.length===0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ fontStyle:'italic', py:4 }}>
+                  <TableCell colSpan={5} align="center" sx={{ fontStyle:'italic', py:4 }}>
                     No hay vehículos registrados, registre uno.
                   </TableCell>
                 </TableRow>
@@ -123,7 +106,6 @@ const Vehiculos: React.FC = () => {
                 switch(orderBy){
                   case 'id': va = a.idVehiculo; vb = b.idVehiculo; break;
                   case 'dominio': va = a.dominio.toLowerCase(); vb = b.dominio.toLowerCase(); break;
-                  case 'marca': va = (a.marca?.nombre||'').toLowerCase(); vb = (b.marca?.nombre||'').toLowerCase(); break;
                   case 'modelo': va = a.modelo.toLowerCase(); vb = b.modelo.toLowerCase(); break;
                   case 'anio': va = a.anio; vb = b.anio; break;
                 }
@@ -133,7 +115,6 @@ const Vehiculos: React.FC = () => {
                 <TableRow key={v.idVehiculo}>
                   <TableCell>{v.idVehiculo}</TableCell>
                   <TableCell>{v.dominio}</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{v.marca?.nombre}</TableCell>
                   <TableCell>{v.modelo}</TableCell>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{v.anio}</TableCell>
                   <TableCell align="right">

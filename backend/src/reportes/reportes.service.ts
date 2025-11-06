@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { Workbook } from 'exceljs';
 // pdfkit es CommonJS; import default funciona con transpiler
@@ -323,6 +322,104 @@ export class ReportesService {
         doc.text(
           `${r.fecha} | ${r.producto} | ${r.cantidad} | ${r.deposito ?? ''} | ${r.destinoTipo ?? ''} | ${r.vehiculo ?? ''}`,
         );
+      });
+      doc.end();
+    });
+  }
+
+  /**
+   * Consulta el stock disponible por producto y depósito.
+   * Devuelve un array con el detalle de cada producto en cada depósito donde tenga stock.
+   */
+  async stockPorProductoYDeposito() {
+    try {
+      const ingresos = await this.ingresoRepo.find({
+        where: { estado: 'AC' },
+        relations: ['producto', 'deposito'],
+      });
+      const egresos = await this.egresoRepo.find({
+        where: { estado: 'AC' },
+        relations: ['producto', 'deposito'],
+      });
+
+      // Mapa: "idProducto-idDeposito" => { producto, deposito, stock }
+      const mapa: Record<
+        string,
+        { producto: string; deposito: string; stock: number }
+      > = {};
+
+      // Sumar ingresos
+      for (const ing of ingresos) {
+        if (!ing.producto || !ing.deposito) continue; // Skip si no tiene relaciones cargadas
+        const key = `${ing.producto.id}-${ing.deposito.idDeposito}`;
+        if (!mapa[key]) {
+          mapa[key] = {
+            producto: ing.producto.nombre,
+            deposito: ing.deposito.nombre,
+            stock: 0,
+          };
+        }
+        mapa[key].stock += ing.cantidad || 0;
+      }
+
+      // Restar egresos
+      for (const eg of egresos) {
+        if (!eg.producto || !eg.deposito) continue; // Skip si no tiene relaciones cargadas
+        const key = `${eg.producto.id}-${eg.deposito.idDeposito}`;
+        if (!mapa[key]) {
+          mapa[key] = {
+            producto: eg.producto.nombre,
+            deposito: eg.deposito.nombre,
+            stock: 0,
+          };
+        }
+        mapa[key].stock -= eg.cantidad || 0;
+      }
+
+      // Convertir a array y filtrar solo stocks positivos (stock disponible real)
+      return Object.values(mapa)
+        .filter((item) => item.stock > 0)
+        .sort((a, b) => a.producto.localeCompare(b.producto));
+    } catch (error) {
+      console.error('Error en stockPorProductoYDeposito:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Genera un archivo Excel con el stock por producto y depósito.
+   */
+  async stockPorProductoYDepositoExcel(): Promise<Buffer> {
+    const data = await this.stockPorProductoYDeposito();
+    const wb = new Workbook();
+    const ws = wb.addWorksheet('Stock por Producto y Deposito');
+    ws.columns = [
+      { header: 'Producto', key: 'producto', width: 30 },
+      { header: 'Depósito', key: 'deposito', width: 25 },
+      { header: 'Stock', key: 'stock', width: 15 },
+    ];
+    data.forEach((r) => ws.addRow(r));
+    const buf = await wb.xlsx.writeBuffer();
+    return Buffer.from(buf);
+  }
+
+  /**
+   * Genera un PDF con el stock por producto y depósito.
+   */
+  async stockPorProductoYDepositoPdf(): Promise<Buffer> {
+    const data = await this.stockPorProductoYDeposito();
+    const doc = new PDFDocument({ margin: 40 });
+    const chunks: Buffer[] = [];
+    doc.on('data', (c: Buffer) => chunks.push(c));
+    return new Promise<Buffer>((resolve) => {
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc
+        .fontSize(18)
+        .text('Stock por Producto y Deposito', { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(10);
+      data.forEach((r) => {
+        doc.text(`${r.producto} | ${r.deposito} | Stock: ${r.stock}`);
       });
       doc.end();
     });

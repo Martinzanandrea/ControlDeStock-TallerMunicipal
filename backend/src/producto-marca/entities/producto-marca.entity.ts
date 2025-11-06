@@ -1,11 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Producto } from '../../producto/entities/producto.entity';
-import { Vehiculo } from '../../vehiculo/entities/vehiculo.entity';
 
+/**
+ * Entidad ProductoMarca.
+ * Representa marcas de productos (no aplica a vehículos).
+ */
 @Entity('producto_marca')
 export class ProductoMarca {
   @PrimaryGeneratedColumn()
-  idProductoMarca: number; // 👈 bien, consistente con tu convención
+  idProductoMarca: number;
 
   @Column({ length: 100 })
   nombre: string;
@@ -16,8 +19,4 @@ export class ProductoMarca {
   // Relación con productos
   @OneToMany(() => Producto, (producto) => producto.marca)
   productos: Producto[];
-
-  // Relación con vehículos (si las marcas también aplican a vehículos)
-  @OneToMany(() => Vehiculo, (vehiculo) => vehiculo.marca)
-  vehiculos: Vehiculo[];
 }

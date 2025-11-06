@@ -48,6 +48,12 @@ export class AuditInterceptor implements NestInterceptor {
             ? 'DELETE'
             : 'READ';
 
+    // Solo registrar operaciones de escritura (CREATE, UPDATE, DELETE)
+    const shouldAudit = ['CREATE', 'UPDATE', 'DELETE'].includes(action);
+    if (!shouldAudit) {
+      return next.handle();
+    }
+
     // Sanear body: quitar campos sensibles
     const sensitive = new Set([
       'password',

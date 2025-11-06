@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Paper, TextField, Typography, Button, Alert, Link as MLink } from '@mui/material';
+import heroAuth from '../assets/Gemini_Generated_Image_lxfy5jlxfy5jlxfy.png';
 import { Link } from 'react-router-dom';
 import { setSession } from '../auth';
 
@@ -37,8 +38,20 @@ const Login: React.FC<{ onLogged: () => void }> = ({ onLogged }) => {
   }
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh" p={2}>
-      <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 420 }}>
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      minHeight="100vh"
+      p={2}
+      sx={{
+        backgroundImage: `linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url(${heroAuth})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <Paper elevation={6} sx={{ p: 4, width: '100%', maxWidth: 420, backdropFilter: 'blur(4px)', backgroundColor: 'rgba(255,255,255,0.85)' }}>
         <Typography variant="h5" mb={2} textAlign="center">Iniciar Sesión</Typography>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         <Box component="form" onSubmit={submit} display="flex" flexDirection="column" gap={2}>

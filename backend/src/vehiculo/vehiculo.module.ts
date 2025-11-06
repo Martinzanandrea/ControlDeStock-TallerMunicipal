@@ -3,17 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Vehiculo } from './entities/vehiculo.entity';
 import { VehiculoService } from './vehiculo.service';
 import { VehiculoController } from './vehiculo.controller';
-import { ProductoMarca } from '../producto-marca/entities/producto-marca.entity';
-import { ProductoMarcaModule } from '../producto-marca/producto-marca.module';
-//prueba
+
+/**
+ * Módulo de Vehículos.
+ * Proporciona entidad, controlador y servicio para gestionar vehículos sin relación con marcas de productos.
+ */
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Vehiculo, ProductoMarca]),
-    ProductoMarcaModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Vehiculo])],
   controllers: [VehiculoController],
   providers: [VehiculoService],
   exports: [TypeOrmModule],
 })
 export class VehiculoModule {}
-//prueba

@@ -10,6 +10,7 @@ import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import { useNavigate } from 'react-router-dom';
 import { isAuthenticated } from '../auth';
+import heroBg from '../assets/Gemini_Generated_Image_vqmv3gvqmv3gvqmv.png';
 
 // Lista de características destacadas para mostrar en el grid
 const features = [
@@ -64,21 +65,28 @@ const Inicio: React.FC = () => {
     <Box>
   {/* Sección principal (Hero) */}
       <Box
-        sx={(theme) => ({
-          py: { xs: 8, md: 12 },
+        sx={{
+          position: 'relative',
           color: 'common.white',
-          background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(180deg, rgba(21,101,192,0.5) 0%, rgba(106,27,154,0.4) 100%)'
-            : 'linear-gradient(180deg, rgba(21,101,192,0.85) 0%, rgba(106,27,154,0.85) 100%)',
-        })}
+          py: { xs: 10, md: 14 },
+          // Fondo con imagen
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${heroBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          minHeight: { xs: 360, md: 520 },
+          borderBottomLeftRadius: 16,
+          borderBottomRightRadius: 16,
+          boxShadow: (t) => t.shadows[6],
+        }}
       >
         <Container maxWidth="md">
           <Stack spacing={3} alignItems="center" textAlign="center">
             <Chip label="Proyecto de Admisión" color="secondary" size="small" />
-            <Typography variant="h3" fontWeight={800}>
+            <Typography variant="h3" fontWeight={800} sx={{ textShadow: '0 2px 8px rgba(0,0,0,0.35)' }}>
               Control de Stock en Taller Municipal
             </Typography>
-            <Typography variant="h6" sx={{ opacity: 0.9 }}>
+            <Typography variant="h6" sx={{ opacity: 0.95, textShadow: '0 1px 6px rgba(0,0,0,0.3)' }}>
               Aplicación full‑stack para gestionar productos, depósitos y egresos con
               auditoría, exportaciones y autenticación segura.
             </Typography>

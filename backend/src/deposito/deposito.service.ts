@@ -6,17 +6,25 @@ import { Deposito } from './entities/deposito.entity';
 import { CreateDepositoDto } from './dto/create-deposito.dto';
 import { UpdateDepositoDto } from './dto/update-deposito.dto';
 
+/**
+ * Servicio de Depósitos.
+ * Gestiona ABM y baja lógica; valida unicidad por nombre.
+ */
 @Injectable()
 export class DepositoService {
   constructor(
     @InjectRepository(Deposito)
     private depositoRepo: Repository<Deposito>,
   ) {}
-  //listar todos
+  /**
+   * Lista depósitos activos (estado 'AC').
+   */
   findAll() {
-    return this.depositoRepo.find();
+    return this.depositoRepo.find({ where: { estado: 'AC' } });
   }
-  //encontrar por id
+  /**
+   * Obtiene un depósito por ID; lanza NotFound si no existe.
+   */
   async findOne(id: number) {
     const deposito = await this.depositoRepo.findOne({
       where: { idDeposito: id },
@@ -24,7 +32,9 @@ export class DepositoService {
     if (!deposito) throw new NotFoundException('Depósito no encontrado');
     return deposito;
   }
-  //crear depósito
+  /**
+   * Crea un depósito nuevo validando unicidad por nombre.
+   */
   async create(dto: CreateDepositoDto) {
     // Verificar si ya existe un depósito con el mismo nombre
     const existente = await this.depositoRepo.findOne({
@@ -38,7 +48,9 @@ export class DepositoService {
     const nuevo = this.depositoRepo.create(dto);
     return this.depositoRepo.save(nuevo);
   }
-  //actualizarlo
+  /**
+   * Actualiza un depósito; si cambia el nombre valida que no esté usado.
+   */
   async update(id: number, dto: UpdateDepositoDto) {
     const deposito = await this.findOne(id);
 
@@ -59,9 +71,13 @@ export class DepositoService {
     Object.assign(deposito, dto);
     return this.depositoRepo.save(deposito);
   }
-  //eliminarlo
+  /**
+   * Baja lógica del depósito (estado -> 'BA').
+   */
   async remove(id: number) {
     const deposito = await this.findOne(id);
-    return this.depositoRepo.remove(deposito);
+    deposito.estado = 'BA';
+    await this.depositoRepo.save(deposito);
+    return { message: 'Depósito dado de baja' };
   }
 }

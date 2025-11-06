@@ -1,4 +1,7 @@
-// frontend/src/api/api.ts
+// Helpers de API del frontend
+// Centraliza llamadas fetch al backend, incluyendo headers con JWT y
+// utilidades para descargar Excel/PDF. Mantengo las firmas simples
+// para usarlas directo desde los componentes.
 import type {
   Producto,
   ProductoTipo,
@@ -8,11 +11,64 @@ import type {
   StockIngresado,
 } from './interface';
 
+import { getToken } from './auth';
+// URL base del backend (configurable por Vite vía VITE_API_URL)
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
+// Agrega Authorization: Bearer <token> si existe sesión
+function authHeaders(extra: Record<string, string> = {}) {
+  const token = getToken();
+  return token
+    ? { ...extra, Authorization: `Bearer ${token}` }
+    : extra;
+}
+
+// ---------- Descarga de reportes (con Authorization) ----------
+// Descarga binaria (blob) y fuerza guardado local con un <a> temporal
+async function download(path: string, filename: string): Promise<void> {
+  const res = await fetch(`${API_URL}${path}`, { headers: authHeaders() });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Error al descargar archivo');
+  }
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+export const reportes = {
+  stockPorTipoExcel: () => download('/reportes/stock/tipo.xlsx', 'stock_por_tipo.xlsx'),
+  stockPorTipoPdf: () => download('/reportes/stock/tipo.pdf', 'stock_por_tipo.pdf'),
+  stockPorDepositoExcel: () => download('/reportes/stock/deposito.xlsx', 'stock_por_deposito.xlsx'),
+  stockPorDepositoPdf: () => download('/reportes/stock/deposito.pdf', 'stock_por_deposito.pdf'),
+  historialProductoExcel: (idProducto: number) => download(`/reportes/historial/producto/${idProducto}.xlsx`, `historial_producto_${idProducto}.xlsx`),
+  historialProductoPdf: (idProducto: number) => download(`/reportes/historial/producto/${idProducto}.pdf`, `historial_producto_${idProducto}.pdf`),
+  historialDestinoExcel: (params: { destinoTipo?: string; idVehiculo?: number }) => {
+    const q = new URLSearchParams();
+    if (params.destinoTipo) q.set('destinoTipo', params.destinoTipo);
+    if (params.idVehiculo) q.set('idVehiculo', String(params.idVehiculo));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return download(`/reportes/historial/destino.xlsx${qs}`, 'historial_destino.xlsx');
+  },
+  historialDestinoPdf: (params: { destinoTipo?: string; idVehiculo?: number }) => {
+    const q = new URLSearchParams();
+    if (params.destinoTipo) q.set('destinoTipo', params.destinoTipo);
+    if (params.idVehiculo) q.set('idVehiculo', String(params.idVehiculo));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return download(`/reportes/historial/destino.pdf${qs}`, 'historial_destino.pdf');
+  },
+};
+
 // ---------------- Productos ----------------
+// ---------- Productos ----------
 export async function getProductos(): Promise<Producto[]> {
-  const res = await fetch(`${API_URL}/productos`);
+  const res = await fetch(`${API_URL}/productos`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Error al obtener productos');
   return res.json();
 }
@@ -35,7 +91,7 @@ export async function createProducto(data: {
   };
   const res = await fetch(`${API_URL}/productos`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -51,7 +107,7 @@ export async function updateProducto(
 ): Promise<Producto> {
   const res = await fetch(`${API_URL}/productos/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error('Error al actualizar producto');
@@ -59,13 +115,13 @@ export async function updateProducto(
 }
 
 export async function deleteProducto(id: number): Promise<void> {
-  const res = await fetch(`${API_URL}/productos/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${API_URL}/productos/${id}`, { method: 'DELETE', headers: authHeaders() });
   if (!res.ok) throw new Error('Error al eliminar producto');
 }
 
-// ---------------- ProductosTipos ----------------
+// ---------- Tipos de Producto ----------
 export async function getProductosTipos(): Promise<ProductoTipo[]> {
-  const res = await fetch(`${API_URL}/productostipos`);
+  const res = await fetch(`${API_URL}/productostipos`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Error al obtener tipos de producto');
   return res.json();
 }
@@ -74,7 +130,7 @@ export async function createProductoTipo(data: { nombre: string }): Promise<Prod
   const payload = { nombre: data.nombre, estado: 'AC' };
   const res = await fetch(`${API_URL}/productostipos`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -84,9 +140,9 @@ export async function createProductoTipo(data: { nombre: string }): Promise<Prod
   return res.json();
 }
 
-// ---------------- ProductoMarcas ----------------
+// ---------- Marcas de Producto ----------
 export async function getProductoMarcas(): Promise<ProductoMarca[]> {
-  const res = await fetch(`${API_URL}/productomarca`);
+  const res = await fetch(`${API_URL}/productomarca`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Error al obtener marcas');
   return res.json();
 }
@@ -94,7 +150,7 @@ export async function getProductoMarcas(): Promise<ProductoMarca[]> {
 export async function createProductoMarca(data: { nombre: string }): Promise<ProductoMarca> {
   const res = await fetch(`${API_URL}/productomarca`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -104,9 +160,9 @@ export async function createProductoMarca(data: { nombre: string }): Promise<Pro
   return res.json();
 }
 
-// ---------------- Depósitos ----------------
+// ---------- Depósitos ----------
 export async function getDepositos(): Promise<Deposito[]> {
-  const res = await fetch(`${API_URL}/depositos`);
+  const res = await fetch(`${API_URL}/depositos`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Error al obtener depósitos');
   return res.json();
 }
@@ -114,7 +170,7 @@ export async function getDepositos(): Promise<Deposito[]> {
 export async function createDeposito(data: { nombre: string; ubicacion: string }): Promise<Deposito> {
   const res = await fetch(`${API_URL}/depositos`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -124,9 +180,9 @@ export async function createDeposito(data: { nombre: string; ubicacion: string }
   return res.json();
 }
 
-// ---------------- Vehículos ----------------
+// ---------- Vehículos ----------
 export async function getVehiculos(): Promise<Vehiculo[]> {
-  const res = await fetch(`${API_URL}/vehiculos`);
+  const res = await fetch(`${API_URL}/vehiculos`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Error al obtener vehículos');
   return res.json();
 }
@@ -145,7 +201,7 @@ export async function createVehiculo(data: {
   };
   const res = await fetch(`${API_URL}/vehiculos`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -155,9 +211,17 @@ export async function createVehiculo(data: {
   return res.json();
 }
 
-// ---------------- StockIngresado ----------------
+export async function deleteVehiculo(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/vehiculos/${id}`, { method: 'DELETE', headers: authHeaders() });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Error al eliminar vehículo');
+  }
+}
+
+// ---------- Stock Ingresado ----------
 export async function getStockIngresado(): Promise<StockIngresado[]> {
-  const res = await fetch(`${API_URL}/stockingresado`);
+  const res = await fetch(`${API_URL}/stockingresado`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Error al obtener stock ingresado');
   return res.json();
 }
@@ -171,7 +235,7 @@ export async function createStockIngresado(data: {
 }): Promise<StockIngresado> {
   const res = await fetch(`${API_URL}/stockingresado`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -183,7 +247,8 @@ export async function createStockIngresado(data: {
 
 export async function deleteStockIngresado(idProducto: number, idDeposito: number): Promise<void> {
   const res = await fetch(`${API_URL}/stockingresado/producto/${idProducto}/deposito/${idDeposito}`, {
-    method: 'DELETE'
+    method: 'DELETE',
+    headers: authHeaders(),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -191,11 +256,11 @@ export async function deleteStockIngresado(idProducto: number, idDeposito: numbe
   }
 }
 
-// ---------------- Stock Egresos ----------------
+// ---------- Stock Egresos ----------
 import type { StockEgreso } from './interface';
 
 export async function getStockEgresos(): Promise<StockEgreso[]> {
-  const res = await fetch(`${API_URL}/stockegreso`);
+  const res = await fetch(`${API_URL}/stockegreso`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Error al obtener egresos');
   return res.json();
 }
@@ -210,7 +275,7 @@ export async function createStockEgreso(data: {
 }): Promise<StockEgreso> {
   const res = await fetch(`${API_URL}/stockegreso`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -221,6 +286,6 @@ export async function createStockEgreso(data: {
 }
 
 export async function deleteStockEgreso(id: number): Promise<void> {
-  const res = await fetch(`${API_URL}/stockegreso/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${API_URL}/stockegreso/${id}`, { method: 'DELETE', headers: authHeaders() });
   if (!res.ok) throw new Error('Error al eliminar egreso');
 }

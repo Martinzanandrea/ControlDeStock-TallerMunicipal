@@ -6,6 +6,11 @@ import { CreateVehiculoDto } from './dto/create-vehiculo.dto';
 import { UpdateVehiculoDto } from './dto/update-vehiculo.dto';
 import { ProductoMarca } from '../producto-marca/entities/producto-marca.entity';
 
+/**
+ * Servicio de Vehículos.
+ * Gestiona registro, listado, actualización y baja lógica (estado BA).
+ * Valida la existencia de la marca asociada.
+ */
 @Injectable()
 export class VehiculoService {
   constructor(
@@ -16,6 +21,10 @@ export class VehiculoService {
     private readonly marcaRepository: Repository<ProductoMarca>,
   ) {}
 
+  /**
+   * Registra un nuevo vehículo con su marca.
+   * @param dto datos del vehículo
+   */
   async registrarVehiculo(dto: CreateVehiculoDto): Promise<Vehiculo> {
     const marca = await this.marcaRepository.findOneBy({
       idProductoMarca: dto.idProductoMarca,
@@ -33,13 +42,20 @@ export class VehiculoService {
     return await this.vehiculoRepository.save(vehiculo);
   }
 
+  /**
+   * Lista vehículos activos ordenados por id.
+   */
   async listarVehiculos(): Promise<Vehiculo[]> {
     return await this.vehiculoRepository.find({
+      where: { estado: 'AC' },
       relations: ['marca'],
       order: { idVehiculo: 'ASC' },
     });
   }
 
+  /**
+   * Obtiene vehículo por ID incluyendo la marca.
+   */
   async obtenerVehiculoPorId(id: number): Promise<Vehiculo> {
     const vehiculo = await this.vehiculoRepository.findOne({
       where: { idVehiculo: id },
@@ -49,6 +65,9 @@ export class VehiculoService {
     return vehiculo;
   }
 
+  /**
+   * Actualiza datos del vehículo y opcionalmente su marca.
+   */
   async actualizarVehiculo(
     id: number,
     dto: UpdateVehiculoDto,
@@ -65,8 +84,12 @@ export class VehiculoService {
     return await this.vehiculoRepository.save(vehiculo);
   }
 
+  /**
+   * Baja lógica del vehículo.
+   */
   async eliminarVehiculo(id: number): Promise<void> {
     const vehiculo = await this.obtenerVehiculoPorId(id);
-    await this.vehiculoRepository.remove(vehiculo);
+    vehiculo.estado = 'BA';
+    await this.vehiculoRepository.save(vehiculo);
   }
 }

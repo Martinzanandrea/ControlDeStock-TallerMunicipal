@@ -13,6 +13,11 @@ import { Deposito } from '../deposito/entities/deposito.entity';
 import { StockIngresado } from '../stock-ingresado/entities/stock-ingresado.entity';
 import { Vehiculo } from '../vehiculo/entities/vehiculo.entity';
 
+/**
+ * Servicio de Stock Egreso.
+ * Valida fechas, disponibilidad de stock y destino (vehículo/oficina),
+ * y realiza bajas lógicas.
+ */
 @Injectable()
 export class StockEgresoService {
   constructor(
@@ -32,6 +37,7 @@ export class StockEgresoService {
     private readonly vehiculoRepo: Repository<Vehiculo>,
   ) {}
 
+  /** Crea un egreso validando stock disponible y destino */
   async crear(dto: CreateStockEgresoDto): Promise<StockEgreso> {
     const producto = await this.productoRepo.findOne({
       where: { id: dto.idProducto },
@@ -62,6 +68,23 @@ export class StockEgresoService {
       throw new BadRequestException('fechaEgreso inválida');
     if (fechaEgreso.getTime() > now.getTime())
       throw new BadRequestException('No se permiten fechas de egreso futuras');
+
+    // Regla opcional: no permitir más de un egreso del mismo producto al mismo vehículo en la misma fecha
+    if (dto.destinoTipo === 'VEHICULO' && vehiculo) {
+      const existenteDuplicado = await this.egresoRepo.findOne({
+        where: {
+          producto: { id: producto.id },
+          vehiculo: { idVehiculo: vehiculo.idVehiculo },
+          fechaEgreso: dto.fechaEgreso,
+          estado: 'AC',
+        },
+      });
+      if (existenteDuplicado) {
+        throw new BadRequestException(
+          'Ya existe un egreso para este producto y vehículo en esa fecha',
+        );
+      }
+    }
 
     // Calcular stock disponible en el depósito para ese producto
     const ingresos = await this.ingresoRepo.find({
@@ -99,10 +122,12 @@ export class StockEgresoService {
     return this.egresoRepo.save(nuevo);
   }
 
+  /** Lista todos los egresos */
   async obtenerTodos(): Promise<StockEgreso[]> {
     return this.egresoRepo.find();
   }
 
+  /** Obtiene egreso por ID */
   async obtenerPorId(id: number): Promise<StockEgreso> {
     const egreso = await this.egresoRepo.findOne({
       where: { idStockEgreso: id },
@@ -111,6 +136,7 @@ export class StockEgresoService {
     return egreso;
   }
 
+  /** Actualiza datos del egreso */
   async actualizar(
     id: number,
     dto: UpdateStockEgresoDto,
@@ -120,8 +146,10 @@ export class StockEgresoService {
     return this.egresoRepo.save(egreso);
   }
 
+  /** Baja lógica del egreso */
   async eliminar(id: number): Promise<void> {
     const egreso = await this.obtenerPorId(id);
-    await this.egresoRepo.remove(egreso);
+    egreso.estado = 'BA';
+    await this.egresoRepo.save(egreso);
   }
 }

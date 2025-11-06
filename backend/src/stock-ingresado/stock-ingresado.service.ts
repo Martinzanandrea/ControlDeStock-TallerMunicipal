@@ -12,6 +12,10 @@ import { UpdateStockIngresadoDto } from './dto/update-stock-ingresado.dto';
 import { Producto } from '../producto/entities/producto.entity';
 import { Deposito } from '../deposito/entities/deposito.entity';
 
+/**
+ * Servicio de Stock Ingresado.
+ * Registra entradas de stock con validación de fechas, permite actualización y baja lógica.
+ */
 @Injectable()
 export class StockIngresadoService {
   constructor(
@@ -25,6 +29,7 @@ export class StockIngresadoService {
     private readonly depositoRepo: Repository<Deposito>,
   ) {}
 
+  /** Crea un registro de stock ingresado validando producto, depósito y fecha */
   async crear(dto: CreateStockIngresadoDto): Promise<StockIngresado> {
     const producto = await this.productoRepo.findOne({
       where: { id: dto.idProducto },
@@ -57,10 +62,12 @@ export class StockIngresadoService {
     return this.stockRepo.save(nuevo);
   }
 
+  /** Lista registros activos de stock ingresado */
   async obtenerTodos(): Promise<StockIngresado[]> {
-    return this.stockRepo.find();
+    return this.stockRepo.find({ where: { estado: 'AC' } });
   }
 
+  /** Busca un registro por ID */
   async obtenerPorId(id: number): Promise<StockIngresado> {
     const stock = await this.stockRepo.findOne({
       where: { idStockIngresado: id },
@@ -69,6 +76,7 @@ export class StockIngresadoService {
     return stock;
   }
 
+  /** Actualiza campos de un registro existente */
   async actualizar(
     id: number,
     dto: UpdateStockIngresadoDto,
@@ -78,6 +86,7 @@ export class StockIngresadoService {
     return this.stockRepo.save(stock);
   }
 
+  /** Baja lógica buscando por producto y depósito */
   async eliminar(idProducto: number, idDeposito: number): Promise<void> {
     const stock = await this.stockRepo.findOne({
       where: {
@@ -90,6 +99,8 @@ export class StockIngresadoService {
       throw new NotFoundException('Stock no encontrado');
     }
 
-    await this.stockRepo.remove(stock);
+    // Borrado lógico: cambiar estado a 'BA'
+    stock.estado = 'BA';
+    await this.stockRepo.save(stock);
   }
 }

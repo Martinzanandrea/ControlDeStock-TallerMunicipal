@@ -10,6 +10,12 @@ Aplicación web (backend NestJS + frontend React) para gestionar productos, dep�
 - Frontend: React + Vite, TypeScript, Material UI, React Router
 - Auditoría: Interceptor que guarda usuario, acción, método y ruta
 
+## Requisitos
+
+- Node.js: Frontend requiere Node 20.19+ o 22.12+ (Vite 7). Backend compatible con Node 18+.
+- PostgreSQL 13+ en ejecución.
+- npm 9+.
+
 ## Módulos principales
 
 | Dominio            | Descripción                                                        |
@@ -39,13 +45,19 @@ Aplicación web (backend NestJS + frontend React) para gestionar productos, dep�
 # Backend
 cd backend
 npm install
-cp .env.example .env   # (si existe; si no crear con variables abajo)
+cp .env.example .env   # (si existe; si no, crear .env con variables de abajo)
 npm run start:dev
 
 # Frontend
 cd ../frontend
 npm install
 npm run dev
+```
+
+Sugerido para Frontend: en `frontend/.env` definir la URL del backend.
+
+```
+VITE_API_URL=http://localhost:3000
 ```
 
 ## Variables de entorno backend
@@ -64,24 +76,28 @@ JWT_EXPIRES=3600
 
 ## Endpoints principales (resumen)
 
-| Recurso                  | Método | Ruta                                     | Descripción       |
-| ------------------------ | ------ | ---------------------------------------- | ----------------- |
-| Auth                     | POST   | /auth/login                              | Login usuario     |
-| Auth                     | POST   | /auth/register                           | Registrar usuario |
-| Productos                | GET    | /productos                               | Listar            |
-| Productos                | POST   | /productos                               | Crear             |
-| Productos                | PUT    | /productos/:id                           | Actualizar        |
-| Productos                | DELETE | /productos/:id                           | Baja lógica       |
-| Tipos                    | GET    | /productostipos                          | Listar tipos      |
-| Marcas                   | GET    | /productomarca                           | Listar marcas     |
-| Depósitos                | GET    | /depositos                               | Listar            |
-| Vehículos                | GET    | /vehiculos                               | Listar            |
-| Ingresos                 | GET    | /stockingresado                          | Listar ingresos   |
-| Egresos                  | GET    | /stockegreso                             | Listar egresos    |
-| Reporte stock tipo       | GET    | /reportes/stock/tipo                     | JSON agregado     |
-| Reporte stock tipo Excel | GET    | /reportes/stock/tipo.xlsx                | Descarga          |
-| Historial producto       | GET    | /reportes/historial/producto/:idProducto | Movimientos       |
-| Auditoría                | GET    | /auditoria                               | Últimos logs      |
+| Recurso                  | Método | Ruta                                           | Descripción       |
+| ------------------------ | ------ | ---------------------------------------------- | ----------------- |
+| Auth                     | POST   | /auth/login                                    | Login usuario     |
+| Auth                     | POST   | /auth/register                                 | Registrar usuario |
+| Productos                | GET    | /productos                                     | Listar            |
+| Productos                | POST   | /productos                                     | Crear             |
+| Productos                | PUT    | /productos/:id                                 | Actualizar        |
+| Productos                | DELETE | /productos/:id                                 | Baja lógica       |
+| Tipos                    | GET    | /productostipos                                | Listar tipos      |
+| Marcas                   | GET    | /productomarca                                 | Listar marcas     |
+| Depósitos                | GET    | /depositos                                     | Listar            |
+| Vehículos                | GET    | /vehiculos                                     | Listar            |
+| Ingresos                 | GET    | /stockingresado                                | Listar ingresos   |
+| Egresos                  | GET    | /stockegreso                                   | Listar egresos    |
+| Reporte stock tipo       | GET    | /reportes/stock/tipo                           | JSON agregado     |
+| Historial producto JSON  | GET    | /reportes/historial/producto/:idProducto       | Movimientos       |
+| Historial producto Excel | GET    | /reportes/historial/producto/:idProducto/excel | Descarga XLSX     |
+| Historial producto PDF   | GET    | /reportes/historial/producto/:idProducto/pdf   | Descarga PDF      |
+| Stock prod x depósito    | GET    | /reportes/stock/producto-deposito              | JSON agregado     |
+| Stock prod x dep. Excel  | GET    | /reportes/stock/producto-deposito/excel        | Descarga XLSX     |
+| Stock prod x dep. PDF    | GET    | /reportes/stock/producto-deposito/pdf          | Descarga PDF      |
+| Auditoría                | GET    | /auditoria                                     | Últimos logs      |
 
 ## Reglas y validaciones
 
@@ -102,9 +118,11 @@ Interceptor captura: usuario (id/username), método HTTP, acción derivada (READ
 
 ## Frontend (UX básica)
 
-- Menú: Productos, Stock, Egresos, Vehículos, Depósitos, Auditoría.
+- Menú: Productos, Ingresos, Egresos, Vehículos, Depósitos, Historial, Stock x Depósito, Auditoría.
 - Tablas con mensajes de vacío y botones de exportación.
-- Vista Auditoría: hora, usuario y acción con chips de color.
+- Vista Auditoría: hora, usuario y acción con chips de color (solo CREATE/UPDATE/DELETE).
+- Navbar con logo institucional (link al inicio) y menú centrado en desktop.
+- Inicio con imagen de fondo; Login y Register con fondo + blur.
 
 ## Scripts útiles backend
 

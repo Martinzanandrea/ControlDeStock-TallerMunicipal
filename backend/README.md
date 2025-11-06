@@ -85,7 +85,16 @@ JWT_EXPIRES=3600
 
 - Auth: `POST /auth/login`, `POST /auth/register`
 - Productos: `GET/POST/PUT/DELETE /productos`
-- Reportes: `GET /reportes/stock/tipo`, `GET /reportes/stock/tipo.xlsx`, `GET /reportes/historial/producto/:idProducto`
+- Reportes agregados:
+  - `GET /reportes/stock/tipo`
+  - Historial por producto (JSON/Excel/PDF):
+    - `GET /reportes/historial/producto/:idProducto`
+    - `GET /reportes/historial/producto/:idProducto/excel`
+    - `GET /reportes/historial/producto/:idProducto/pdf`
+  - Stock por producto y depósito (JSON/Excel/PDF):
+    - `GET /reportes/stock/producto-deposito`
+    - `GET /reportes/stock/producto-deposito/excel`
+    - `GET /reportes/stock/producto-deposito/pdf`
 - Auditoría: `GET /auditoria?limit=100`
 
 ## Convenciones
@@ -93,6 +102,7 @@ JWT_EXPIRES=3600
 - Baja lógica con campo `estado` ('AC'/'BA').
 - Validación de fechas (no futuras) y stock suficiente en egresos.
 - Auditoría ignora endpoints marcados con `@Public()`.
+- Rutas de descarga refactorizadas a sufijos `/excel` y `/pdf` para evitar conflictos de parseo.
 
 ## Notas
 

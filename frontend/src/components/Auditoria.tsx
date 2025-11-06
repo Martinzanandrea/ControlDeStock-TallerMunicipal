@@ -81,7 +81,11 @@ const Auditoria: React.FC = () => {
           })),
         );
       })
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => {
+        // Ignorar errores de abort (cleanup normal al desmontar)
+        if (e instanceof Error && e.name === 'AbortError') return;
+        setError(e instanceof Error ? e.message : String(e));
+      });
     return () => controller.abort();
   }, []);
 

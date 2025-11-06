@@ -4,16 +4,18 @@
 export interface Producto {
   id: number;
   nombre: string;
-  descripcion: string;
-  tipoProducto: ProductoTipo; // relación con ProductoTipo
-  marca: ProductoMarca;       // relación con ProductoMarca
+  descripcion?: string;
+  tipo: ProductoTipo; // relación con ProductoTipo (backend usa 'tipo')
+  marca: ProductoMarca; // relación con ProductoMarca (backend usa 'marca')
+  deposito?: Deposito;
+  stockActual: number;
   estado: 'AC' | 'BA';
 }
 
 // ---------- Tipos de Producto ----------
 export interface ProductoTipo {
-  idProductoTipo: number;
-  descripcion: string;
+  id: number;
+  nombre: string; // backend usa 'nombre'
   estado: 'AC' | 'BA';
 }
 
@@ -48,6 +50,17 @@ export interface Vehiculo {
   dominio: string;
   marca: ProductoMarca;      // referencia a Marca
   modelo: string;
-  año: number;
+  anio: number;
+  estado: 'AC' | 'BA';
+}
+
+export interface StockEgreso {
+  idStockEgreso: number;
+  producto: Producto;
+  deposito: Deposito;
+  cantidad: number;
+  fechaEgreso: string;
+  destinoTipo: 'OFICINA' | 'VEHICULO';
+  vehiculo?: Vehiculo | null;
   estado: 'AC' | 'BA';
 }

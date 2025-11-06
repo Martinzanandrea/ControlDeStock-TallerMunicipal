@@ -36,8 +36,11 @@ export class StockIngresadoController {
     return this.stockService.actualizar(id, dto);
   }
 
-  @Delete(':id')
-  eliminar(@Param('id') id: number) {
-    return this.stockService.eliminar(id);
+  @Delete('producto/:idProducto/deposito/:idDeposito')
+  eliminar(
+    @Param('idProducto') idProducto: number,
+    @Param('idDeposito') idDeposito: number,
+  ) {
+    return this.stockService.eliminar(idProducto, idDeposito);
   }
 }

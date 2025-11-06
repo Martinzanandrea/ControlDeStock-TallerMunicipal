@@ -1,5 +1,9 @@
 // src/stock-ingresado/stock-ingresado.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StockIngresado } from './entities/stock-ingresado.entity';
@@ -31,6 +35,16 @@ export class StockIngresadoService {
       where: { idDeposito: dto.idDeposito },
     });
     if (!deposito) throw new NotFoundException('Depósito no encontrado');
+
+    // Validación: no permitir fecha futura
+    const fechaIngresoDate = new Date(dto.fechaIngreso);
+    const now = new Date();
+    if (isNaN(fechaIngresoDate.getTime())) {
+      throw new BadRequestException('fechaIngreso inválida');
+    }
+    if (fechaIngresoDate.getTime() > now.getTime()) {
+      throw new BadRequestException('No se permiten fechas de ingreso futuras');
+    }
 
     const nuevo = this.stockRepo.create({
       producto,
@@ -64,8 +78,18 @@ export class StockIngresadoService {
     return this.stockRepo.save(stock);
   }
 
-  async eliminar(id: number): Promise<void> {
-    const stock = await this.obtenerPorId(id);
+  async eliminar(idProducto: number, idDeposito: number): Promise<void> {
+    const stock = await this.stockRepo.findOne({
+      where: {
+        producto: { id: idProducto },
+        deposito: { idDeposito: idDeposito },
+      },
+    });
+
+    if (!stock) {
+      throw new NotFoundException('Stock no encontrado');
+    }
+
     await this.stockRepo.remove(stock);
   }
 }

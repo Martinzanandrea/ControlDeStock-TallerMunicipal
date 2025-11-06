@@ -9,6 +9,7 @@ import { DepositoModule } from './deposito/deposito.module';
 import { StockIngresadoModule } from './stock-ingresado/stock-ingresado.module';
 import { VehiculoModule } from './vehiculo/vehiculo.module';
 import { ProductoTipoModule } from './producto-tipo/producto-tipo.module';
+import { StockEgresoModule } from './stock-egreso/stock-egreso.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ProductoTipoModule } from './producto-tipo/producto-tipo.module';
     ProductoMarcaModule,
     DepositoModule,
     StockIngresadoModule,
+    StockEgresoModule,
     VehiculoModule,
   ],
   controllers: [AppController],

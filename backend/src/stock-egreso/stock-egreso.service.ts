@@ -91,6 +91,7 @@ export class StockEgresoService {
       where: {
         producto: { id: producto.id },
         deposito: { idDeposito: deposito.idDeposito },
+        estado: 'AC',
       },
     });
     const totalIngresado = ingresos.reduce((s, x) => s + (x.cantidad ?? 0), 0);
@@ -99,6 +100,7 @@ export class StockEgresoService {
       where: {
         producto: { id: producto.id },
         deposito: { idDeposito: deposito.idDeposito },
+        estado: 'AC',
       },
     });
     const totalEgresado = egresos.reduce((s, x) => s + (x.cantidad ?? 0), 0);
@@ -122,9 +124,11 @@ export class StockEgresoService {
     return this.egresoRepo.save(nuevo);
   }
 
-  /** Lista todos los egresos */
+  /** Lista todos los egresos activos */
   async obtenerTodos(): Promise<StockEgreso[]> {
-    return this.egresoRepo.find();
+    return this.egresoRepo.find({
+      where: { estado: 'AC' },
+    });
   }
 
   /** Obtiene egreso por ID */

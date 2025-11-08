@@ -3,7 +3,7 @@ import { Paper, Typography, TableContainer, Table, TableHead, TableRow, TableCel
 import { getDepositos } from '../api';
 import type { Deposito } from '../interface';
 
-// Vista simple de depósitos solo lectura, con ordenamiento y mensaje vacío.
+// Listado de depósitos con ordenamiento.
 const Depositos: React.FC = () => {
   const [depositos, setDepositos] = useState<Deposito[]>([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
@@ -15,7 +15,7 @@ const Depositos: React.FC = () => {
 
   useEffect(() => { cargarDatos(); }, []);
 
-  // Carga la lista de depósitos desde la API
+  // Carga la lista de depósitos
   async function cargarDatos() {
     const deps = await getDepositos();
     setDepositos(deps);

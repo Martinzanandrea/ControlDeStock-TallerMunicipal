@@ -10,9 +10,6 @@ import logoMuni from '../assets/logo-muni.png';
 
 interface MainLayoutProps { onLogout?: () => void }
 
-// Layout principal autenticado: barra superior + menú lateral responsive
-// Contiene navegación a módulos y footer con autor. Maneja toggle de tema.
-
 const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
@@ -21,8 +18,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const isDark = theme.palette.mode === 'dark';
   const location = useLocation();
   const isHome = location.pathname === '/';
-
-  // Menú móvil controlado por drawer (en desktop se muestran botones inline)
 
   const menuItems = [
     { label: 'Inicio', to: '/' },
@@ -123,7 +118,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
           </Box>
         </Box>
       </Drawer>
-      {/* Título institucional bajo la barra (oculto en Inicio) */}
       {!isHome && (
         <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 2, sm: 2.5 }, color: '#000' }}>
           <Typography

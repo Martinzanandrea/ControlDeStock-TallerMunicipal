@@ -63,7 +63,6 @@ const Inicio: React.FC = () => {
 
   return (
     <Box>
-  {/* Sección principal (Hero) */}
       <Box
         sx={{
           position: 'relative',
@@ -108,7 +107,6 @@ const Inicio: React.FC = () => {
         </Container>
       </Box>
 
-  {/* Grid de características */}
       <Container sx={{ py: { xs: 6, md: 10 } }}>
         <Box
           sx={{
@@ -137,7 +135,6 @@ const Inicio: React.FC = () => {
         </Box>
       </Container>
 
-  {/* Footer con tecnologías y contactos */}
       <Box sx={{ py: 6, borderTop: (t) => `1px solid ${t.palette.divider}` }}>
         <Container>
           <Stack spacing={2} alignItems="center" textAlign="center">

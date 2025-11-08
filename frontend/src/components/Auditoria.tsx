@@ -3,7 +3,7 @@ import { Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHe
 import type { ChipProps } from '@mui/material/Chip';
 import { getToken } from '../auth';
 
-// Estructura mínima que consume el front para mostrar auditoría
+// Datos de auditoría devueltos por el backend
 type AuditDTO = {
   id: number;
   createdAt: string;
@@ -14,7 +14,7 @@ type AuditDTO = {
   resource: string | null;
 };
 
-// Traduce el nombre técnico del recurso a uno más amigable
+// Nombre legible del recurso
 function getNombreRecurso(resource: string | null): string {
   if (!resource) return 'registro';
   const map: Record<string, string> = {
@@ -30,7 +30,7 @@ function getNombreRecurso(resource: string | null): string {
   return map[resource.toLowerCase()] || resource;
 }
 
-// Genera una descripción legible de la acción
+// Texto descriptivo de la acción
 function getDescripcionAccion(action: string, resource: string | null): string {
   const nombre = getNombreRecurso(resource);
   switch (action) {
@@ -47,7 +47,7 @@ function getDescripcionAccion(action: string, resource: string | null): string {
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
-// Vista simple de auditoría: muestra hora, usuario y acción
+// Lista de operaciones recientes
 const Auditoria: React.FC = () => {
   const [items, setItems] = useState<AuditDTO[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +65,7 @@ const Auditoria: React.FC = () => {
       })
       .then((raw) => {
         const data = raw as AuditDTO[];
-        // Filtrar solo operaciones de escritura (CREATE, UPDATE, DELETE)
+  // Solo acciones de escritura
         const escritura = data.filter((d) => 
           ['CREATE', 'UPDATE', 'DELETE'].includes(d.action)
         );
@@ -82,7 +82,7 @@ const Auditoria: React.FC = () => {
         );
       })
       .catch((e) => {
-        // Ignorar errores de abort (cleanup normal al desmontar)
+  // Ignora abort
         if (e instanceof Error && e.name === 'AbortError') return;
         setError(e instanceof Error ? e.message : String(e));
       });

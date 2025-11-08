@@ -18,9 +18,6 @@ import Inicio from './components/Inicio';
 import { ColorModeContext, useColorMode } from './theme';
 
 
-// Componente raíz: configura tema (modo claro/oscuro),
-// enrutamiento y protección de rutas según autenticación.
-// Página pública principal: /inicio.
 const App: React.FC = () => {
   const { theme, colorMode } = useColorMode();
   const authed = isAuthenticated();
@@ -32,7 +29,6 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/login" element={<Login onLogged={() => window.location.replace('/')} />} />
             <Route path="/register" element={<Register onRegistered={() => window.location.replace('/')} />} />
-            {/* Página pública de inicio */}
             <Route path="/inicio" element={<Inicio />} />
             {authed ? (
               <Route path="/" element={<MainLayout onLogout={() => { clearSession(); window.location.replace('/login'); }} />}> 
@@ -49,7 +45,6 @@ const App: React.FC = () => {
             ) : (
               <>
                 <Route path="/" element={<Inicio />} />
-                {/* Si no autenticado y va a ruta protegida, redirige a login */}
                 <Route path="/*" element={<Navigate to="/login" replace />} />
               </>
             )}

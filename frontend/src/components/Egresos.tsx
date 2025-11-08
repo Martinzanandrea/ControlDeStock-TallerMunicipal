@@ -10,9 +10,7 @@ import type { Producto, Deposito, Vehiculo, StockEgreso, StockIngresado } from '
 
 dayjs.locale('es');
 
-// Formulario de egresos con validaciones básicas, selector de destino
-// (oficina/vehículo), alta rápida de vehículo y tabla con ordenamiento.
-// Incluye botón Cancelar para resetear el formulario y mensajes de feedback.
+// Gestiona egresos: valida stock, permite destino oficina o vehículo y alta rápida de vehículo.
 const Egresos: React.FC = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [depositos, setDepositos] = useState<Deposito[]>([]);
@@ -30,7 +28,7 @@ const Egresos: React.FC = () => {
 
   useEffect(() => { cargarDatos(); }, []);
 
-  // Carga inicial de catálogos y egresos en paralelo
+  // Carga datos necesarios en paralelo
   async function cargarDatos() {
     const [prod, deps, vehs, eg, stock] = await Promise.all([
       getProductos(),
@@ -46,7 +44,7 @@ const Egresos: React.FC = () => {
     setStockList(stock);
   }
 
-  // Valida campos, verifica stock disponible y crea el egreso
+  // Crea egreso tras validar entrada y stock
   async function handleCrearEgreso() {
     if (!nuevoEgreso.productoId || !nuevoEgreso.depositoId || !nuevoEgreso.cantidad || !nuevoEgreso.fechaEgreso) {
       setSnackbar({ open: true, message: 'Por favor complete todos los campos requeridos', severity: 'error' });
@@ -83,14 +81,14 @@ const Egresos: React.FC = () => {
     }
   }
 
-  // Restablece los campos del formulario y notifica cancelación
+  // Limpia el formulario
   function handleCancelarEgreso(){
     setNuevoEgreso({ productoId: 0, depositoId: 0, cantidad: 0, fechaEgreso: dayjs(), destinoTipo: 'OFICINA', idVehiculo: 0 });
     setNuevoVehiculo({ dominio: '', modelo: '', anio: new Date().getFullYear() });
     setSnackbar({ open:true, message:'Operación cancelada', severity:'info' });
   }
 
-  // Elimina un egreso existente y recarga la tabla
+  // Baja lógica de egreso
   async function handleEliminarEgreso(id: number) {
     if (!window.confirm('¿Eliminar egreso?')) return;
     try {
@@ -103,7 +101,7 @@ const Egresos: React.FC = () => {
     }
   }
 
-  // Alta rápida de vehículo cuando el destino es VEHICULO
+  // Alta rápida de vehículo
   async function handleRegistrarVehiculo(data: typeof nuevoVehiculo) {
     if (!data.dominio || !data.modelo || !data.anio) {
       setSnackbar({ open: true, message: 'Completar todos los campos', severity: 'error' });

@@ -1,8 +1,7 @@
-// Definiciones de interfaces que el frontend consume del backend
-// Mantienen el mismo shape que envía NestJS/TypeORM en las respuestas.
+// Tipos que el frontend espera del backend.
 
 // ---------- Productos ----------
-/** Producto con relaciones de tipo y marca, y stock consolidado */
+/** Producto con tipo, marca y stock actual */
 export interface Producto {
   id: number;
   nombre: string;
@@ -15,7 +14,7 @@ export interface Producto {
 }
 
 // ---------- Tipos de Producto ----------
-/** Catálogo de tipos de producto */
+/** Tipo de producto */
 export interface ProductoTipo {
   id: number;
   nombre: string; // backend usa 'nombre'
@@ -23,7 +22,7 @@ export interface ProductoTipo {
 }
 
 // ---------- Marcas de Producto ----------
-/** Catálogo de marcas de producto */
+/** Marca de producto */
 export interface ProductoMarca {
   idProductoMarca: number;
   nombre: string;
@@ -31,7 +30,7 @@ export interface ProductoMarca {
 }
 
 // ---------- Depósitos ----------
-/** Depósito físico donde se almacena stock */
+/** Depósito */
 export interface Deposito {
   idDeposito: number;
   nombre: string;
@@ -40,7 +39,7 @@ export interface Deposito {
 }
 
 // ---------- Stock Ingresado ----------
-/** Movimiento de ingreso de stock a un depósito */
+/** Ingreso de stock */
 export interface StockIngresado {
   idStockIngresado: number;
   producto: Producto;        // referencia al producto
@@ -51,7 +50,7 @@ export interface StockIngresado {
 }
 
 // ---------- Vehículos ----------
-/** Vehículo destinatario de egresos cuando destinoTipo='VEHICULO' */
+/** Vehículo */
 export interface Vehiculo {
   idVehiculo: number;
   dominio: string;
@@ -60,7 +59,7 @@ export interface Vehiculo {
   estado: 'AC' | 'BA';
 }
 
-/** Movimiento de egreso desde un depósito hacia oficina o vehículo */
+/** Egreso de stock */
 export interface StockEgreso {
   idStockEgreso: number;
   producto: Producto;
